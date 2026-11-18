@@ -30,10 +30,13 @@ jobs:
       - name: Show weather.json
         run: cat weather.json
 
+      - name: Show weather.csv (tail)
+        run: tail -n 20 weather.csv || true
+
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Update weather data [skip ci]"
-          file_pattern: weather.json
+          file_pattern: "weather.json weather.csv"
           commit_user_name: github-actions[bot]
           commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
