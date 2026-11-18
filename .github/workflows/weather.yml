@@ -2,15 +2,13 @@ name: Daily Weather Parse
 
 on:
   schedule:
-    # Запуск каждый день в 00:00 UTC
     - cron: '0 0 * * *'
-  workflow_dispatch: # Позволяет запускать вручную
+  workflow_dispatch:
 
 jobs:
   fetch-weather:
     runs-on: ubuntu-latest
 
-    # Явно разрешаем запись в репозиторий, чтобы работал git push
     permissions:
       contents: write
 
@@ -32,12 +30,16 @@ jobs:
       - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          echo "=== Содержимое weather.json ==="
+          cat weather.json
+          echo "=== Статус git ==="
+          git status
           git add weather.json
-          # Проверяем, есть ли изменения, чтобы не делать пустой коммит
           if git diff --cached --quiet; then
-            echo "No changes to commit"
+            echo "::warning::Нет изменений для коммита"
           else
             git commit -m "Update weather data [skip ci]"
-            git push
+            git push origin HEAD:${GITHUB_REF_NAME}
+            echo "Push OK в ветку ${GITHUB_REF_NAME}"
           fi
