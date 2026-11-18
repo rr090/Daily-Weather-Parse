@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Погода в Германии</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #fff;
+  }
+  h1 { text-align: center; margin-bottom: 8px; font-size: 1.8em; }
+  .updated { text-align: center; opacity: 0.7; margin-bottom: 24px; font-size: 0.85em; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .card {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  .city-name { font-size: 1.3em; font-weight: 600; margin-bottom: 12px; }
+  .current {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .temp-big { font-size: 3em; font-weight: 300; line-height: 1; }
+  .weather-icon { font-size: 3em; }
+  .details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    font-size: 0.85em;
+    margin-bottom: 16px;
+    opacity: 0.9;
+  }
+  .details div { display: flex; justify-content: space-between; }
+  .details span:first-child { opacity: 0.7; }
+  .forecast-title { font-size: 0.9em; font-weight: 600; margin-bottom: 8px; opacity: 0.8; }
+  .forecast { display: flex; flex-direction: column; gap: 6px; }
+  .day {
+    display: grid;
+    grid-template-columns: 60px 30px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    font-size: 0.85em;
+  }
+  .day-date { opacity: 0.8; }
+  .day-icon { font-size: 1.3em; text-align: center; }
+  .day-sun { font-size: 0.75em; opacity: 0.7; }
+  .day-temp { font-weight: 600; white-space: nowrap; }
+  .error { text-align: center; padding: 40px; font-size: 1.1em; }
+  @media (max-width: 480px) {
+    body { padding: 12px; }
+    h1 { font-size: 1.4em; }
+    .card { padding: 16px; }
+    .temp-big { font-size: 2.4em; }
+  }
+</style>
+</head>
+<body>
+<h1>🇩🇪 Погода в Германии</h1>
+<div class="updated" id="updated">Загрузка...</div>
+<div class="grid" id="grid"></div>
+
+<script>
+const WEATHER_ICONS = {
+  0: "☀️", 1: "🌤️", 2: "⛅", 3: "☁️",
+  45: "🌫️", 48: "🌫️",
+  51: "🌦️", 53: "🌦️", 55: "🌧️",
+  56: "🌧️", 57: "🌧️",
+  61: "🌦️", 63: "🌧️", 65: "🌧️",
+  66: "🌧️", 67: "🌧️",
+  71: "🌨️", 73: "🌨️", 75: "❄️", 77: "🌨️",
+  80: "🌦️", 81: "🌧️", 82: "⛈️",
+  85: "🌨️", 86: "❄️",
+  95: "⛈️", 96: "⛈️", 99: "⛈️"
+};
+
+const WEATHER_NAMES = {
+  0: "Ясно", 1: "Преим. ясно", 2: "Перем. облачность", 3: "Пасмурно",
+  45: "Туман", 48: "Изморозь",
+  51: "Морось", 53: "Морось", 55: "Морось",
+  61: "Дождь", 63: "Дождь", 65: "Ливень",
+  71: "Снег", 73: "Снег", 75: "Снегопад",
+  80: "Ливни", 81: "Ливни", 82: "Сильные ливни",
+  95: "Гроза", 96: "Гроза", 99: "Гроза"
+};
+
+function icon(code) { return WEATHER_ICONS[code] || "❓"; }
+function name(code) { return WEATHER_NAMES[code] || "—"; }
+
+function fmtTime(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+}
+
+function fmtDate(iso) {
+  const d = new Date(iso + "T12:00:00");
+  return d.toLocaleDateString("ru-RU", { weekday: "short", day: "numeric", month: "short" });
+}
+
+function windDir(deg) {
+  if (deg == null) return "";
+  const dirs = ["С","СВ","В","ЮВ","Ю","ЮЗ","З","СЗ"];
+  return dirs[Math.round(deg / 45) % 8];
+}
+
+function renderCard(item) {
+  const c = item.current || {};
+  const d = item.daily || {};
+  const temp = Math.round(c.temperature_2m);
+  const feels = Math.round(c.apparent_temperature);
+  const code = c.weather_code;
+
+  let daysHtml = "";
+  if (d.time) {
+    for (let i = 0; i < d.time.length; i++) {
+      const max = Math.round(d.temperature_2m_max[i]);
+      const min = Math.round(d.temperature_2m_min[i]);
+      const dayCode = d.weather_code[i];
+      const uv = d.uv_index_max[i];
+      daysHtml += `
+        <div class="day">
+          <div class="day-date">${fmtDate(d.time[i])}</div>
+          <div class="day-icon" title="${name(dayCode)}">${icon(dayCode)}</div>
+          <div class="day-sun">☀ ${fmtTime(d.sunrise[i])} · 🌙 ${fmtTime(d.sunset[i])} · UV ${uv ?? "—"}</div>
+          <div class="day-temp">${min}° / ${max}°</div>
+        </div>`;
+    }
+  }
+
+  return `
+    <div class="card">
+      <div class="city-name">${item.city}</div>
+      <div class="current">
+        <div class="weather-icon">${icon(code)}</div>
+        <div class="temp-big">${temp}°C</div>
+      </div>
+      <div class="details">
+        <div><span>Ощущается</span><span>${feels}°C</span></div>
+        <div><span>${name(code)}</span><span></span></div>
+        <div><span>Влажность</span><span>${c.relative_humidity_2m ?? "—"}%</span></div>
+        <div><span>Облачность</span><span>${c.cloud_cover ?? "—"}%</span></div>
+        <div><span>Ветер</span><span>${c.wind_speed_10m ?? "—"} км/ч ${windDir(c.wind_direction_10m)}</span></div>
+        <div><span>Порывы</span><span>${c.wind_gusts_10m ?? "—"} км/ч</span></div>
+        <div><span>Давление</span><span>${Math.round(c.pressure_msl ?? 0)} гПа</span></div>
+        <div><span>Осадки</span><span>${c.precipitation ?? 0} мм</span></div>
+      </div>
+      <div class="forecast-title">Прогноз на 7 дней</div>
+      <div class="forecast">${daysHtml}</div>
+    </div>`;
+}
+
+async function load() {
+  const grid = document.getElementById("grid");
+  const updated = document.getElementById("updated");
+  try {
+    const res = await fetch("weather.json?t=" + Date.now());
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) {
+      updated.textContent = "Данных пока нет — workflow ещё не отработал";
+      return;
+    }
+    grid.innerHTML = data.map(renderCard).join("");
+    const t = new Date(data[0].fetched_at);
+    updated.textContent = "Обновлено: " + t.toLocaleString("ru-RU");
+  } catch (e) {
+    updated.textContent = "Ошибка загрузки: " + e.message;
+  }
+}
+load();
+</script>
+</body>
+</html>
