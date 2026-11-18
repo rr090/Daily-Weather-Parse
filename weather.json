@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "city": "Berlin",
+    "fetched_at": "2026-11-18T07:05:38.752271+00:00",
+    "temperature_c": 9.2,
+    "wind_speed_kmh": 15.8,
+    "weather_code": 2
+  },
+  {
+    "city": "Dresden",
+    "fetched_at": "2026-11-18T07:05:38.978095+00:00",
+    "temperature_c": 10.8,
+    "wind_speed_kmh": 9.0,
+    "weather_code": 3
+  }
+]
