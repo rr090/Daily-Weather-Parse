@@ -16,37 +16,86 @@ CITIES = {
     "Leipzig":   {"lat": 51.34, "lon": 12.37},
 }
 
-JSON_FILE = "weather.json"
-CSV_FILE = "weather.csv"
-FIELDS = ["city", "fetched_at", "temperature_c", "wind_speed_kmh", "weather_code"]
+# Параметры для запроса
+CURRENT_PARAMS = [
+    "temperature_2m", "relative_humidity_2m", "apparent_temperature",
+    "is_day", "precipitation", "rain", "showers", "snowfall",
+    "weather_code", "cloud_cover", "pressure_msl", "surface_pressure",
+    "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m"
+]
+
+DAILY_PARAMS = [
+    "weather_code", "temperature_2m_max", "temperature_2m_min", "temperature_2m_mean",
+    "apparent_temperature_max", "apparent_temperature_min",
+    "sunrise", "sunset", "daylight_duration", "sunshine_duration",
+    "uv_index_max", "uv_index_clear_sky_max",
+    "precipitation_sum", "rain_sum", "showers_sum", "snowfall_sum", "precipitation_hours",
+    "precipitation_probability_max", "precipitation_probability_min", "precipitation_probability_mean",
+    "wind_speed_10m_max", "wind_gusts_10m_max", "wind_direction_10m_dominant"
+]
 
 def fetch_weather(city, lat, lon):
+    current_str = ",".join(CURRENT_PARAMS)
+    daily_str = ",".join(DAILY_PARAMS)
     url = (
         f"https://api.open-meteo.com/v1/forecast?"
         f"latitude={lat}&longitude={lon}&"
-        f"current=temperature_2m,wind_speed_10m,weather_code&"
-        f"timezone=Europe/Berlin"
+        f"current={current_str}&"
+        f"daily={daily_str}&"
+        f"timezone=Europe/Berlin&forecast_days=7"
     )
     print(f"[DEBUG] {city}: {url}")
     try:
         response = requests.get(url, timeout=30)
-        print(f"[DEBUG] {city} status: {response.status_code}")
         response.raise_for_status()
         data = response.json()
-        if "current" not in data:
-            print(f"[ERROR] {city}: нет ключа 'current' в ответе")
-            return None
         return {
             "city": city,
             "fetched_at": datetime.now(timezone.utc).isoformat(),
-            "temperature_c": data["current"]["temperature_2m"],
-            "wind_speed_kmh": data["current"]["wind_speed_10m"],
-            "weather_code": data["current"]["weather_code"],
+            "current": data.get("current", {}),
+            "daily": data.get("daily", {})
         }
     except Exception as e:
         print(f"[ERROR] {city}: {type(e).__name__}: {e}")
         traceback.print_exc()
         return None
+
+def save_results(results):
+    # 1. Сохраняем полный JSON (текущая погода + прогноз)
+    with open("weather.json", "w", encoding="utf-8") as f:
+        json.dump(results, f, ensure_ascii=False, indent=2)
+    print("[DONE] weather.json saved")
+
+    # 2. Сохраняем текущую погоду в CSV (дописываем)
+    current_fields = ["city", "fetched_at"] + CURRENT_PARAMS
+    file_exists = os.path.isfile("weather_current.csv") and os.path.getsize("weather_current.csv") > 0
+    with open("weather_current.csv", "a", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=current_fields)
+        if not file_exists:
+            writer.writeheader()
+        for item in results:
+            row = {"city": item["city"], "fetched_at": item["fetched_at"]}
+            row.update(item["current"])
+            writer.writerow(row)
+    print("[DONE] weather_current.csv updated")
+
+    # 3. Сохраняем прогноз в CSV (дописываем, с датой)
+    daily_fields = ["city", "fetched_at", "date"] + DAILY_PARAMS
+    file_exists = os.path.isfile("weather_daily.csv") and os.path.getsize("weather_daily.csv") > 0
+    with open("weather_daily.csv", "a", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=daily_fields)
+        if not file_exists:
+            writer.writeheader()
+        for item in results:
+            daily = item["daily"]
+            if "time" not in daily:
+                continue
+            for i, date in enumerate(daily["time"]):
+                row = {"city": item["city"], "fetched_at": item["fetched_at"], "date": date}
+                for param in DAILY_PARAMS:
+                    row[param] = daily.get(param, [None] * len(daily["time"]))[i] if param in daily else None
+                writer.writerow(row)
+    print("[DONE] weather_daily.csv updated")
 
 def main():
     results = []
@@ -54,21 +103,9 @@ def main():
         w = fetch_weather(city, coords["lat"], coords["lon"])
         if w:
             results.append(w)
-            print(f"[OK] {city}: {w}")
-
-    # JSON — последний снимок (перезаписываем каждый раз)
-    with open(JSON_FILE, "w", encoding="utf-8") as f:
-        json.dump(results, f, ensure_ascii=False, indent=2)
-
-    # CSV — история (дописываем в конец)
-    file_exists = os.path.isfile(CSV_FILE) and os.path.getsize(CSV_FILE) > 0
-    with open(CSV_FILE, "a", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=FIELDS)
-        if not file_exists:
-            writer.writeheader()
-        writer.writerows(results)
-
-    print(f"[DONE] records: {len(results)}")
+            print(f"[OK] {city}")
+    save_results(results)
+    print(f"[DONE] total cities: {len(results)}")
 
 if __name__ == "__main__":
     main()
