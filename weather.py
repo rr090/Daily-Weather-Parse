@@ -18,7 +18,7 @@ def fetch_weather(city, lat, lon):
     )
     try:
         response = requests.get(url, timeout=30)
-        response.raise_for_status() # Проверка на ошибки HTTP
+        response.raise_for_status()
         data = response.json()
         return {
             "city": city,
@@ -39,7 +39,6 @@ def main():
             results.append(weather_data)
             print(f"Данные для {city} получены: {weather_data}")
 
-    # Сохраняем результаты в файл
     with open("weather.json", "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
 
