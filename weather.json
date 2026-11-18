@@ -1,16 +1,58 @@
 [
   {
     "city": "Berlin",
-    "fetched_at": "2026-11-18T07:23:05.432725+00:00",
+    "fetched_at": "2026-11-18T07:29:11.502844+00:00",
     "temperature_c": 9.1,
     "wind_speed_kmh": 14.8,
     "weather_code": 2
   },
   {
     "city": "Dresden",
-    "fetched_at": "2026-11-18T07:23:05.471707+00:00",
+    "fetched_at": "2026-11-18T07:29:11.574547+00:00",
     "temperature_c": 10.8,
     "wind_speed_kmh": 8.6,
+    "weather_code": 3
+  },
+  {
+    "city": "Munich",
+    "fetched_at": "2026-11-18T07:29:11.649548+00:00",
+    "temperature_c": 10.5,
+    "wind_speed_kmh": 22.1,
+    "weather_code": 2
+  },
+  {
+    "city": "Hamburg",
+    "fetched_at": "2026-11-18T07:29:11.719870+00:00",
+    "temperature_c": 8.7,
+    "wind_speed_kmh": 15.9,
+    "weather_code": 61
+  },
+  {
+    "city": "Cologne",
+    "fetched_at": "2026-11-18T07:29:11.790228+00:00",
+    "temperature_c": 11.0,
+    "wind_speed_kmh": 21.6,
+    "weather_code": 3
+  },
+  {
+    "city": "Frankfurt",
+    "fetched_at": "2026-11-18T07:29:11.861994+00:00",
+    "temperature_c": 11.1,
+    "wind_speed_kmh": 20.2,
+    "weather_code": 61
+  },
+  {
+    "city": "Stuttgart",
+    "fetched_at": "2026-11-18T07:29:11.934893+00:00",
+    "temperature_c": 10.9,
+    "wind_speed_kmh": 17.1,
+    "weather_code": 1
+  },
+  {
+    "city": "Leipzig",
+    "fetched_at": "2026-11-18T07:29:12.011979+00:00",
+    "temperature_c": 10.1,
+    "wind_speed_kmh": 15.9,
     "weather_code": 3
   }
 ]
