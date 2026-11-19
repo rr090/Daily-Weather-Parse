@@ -16,7 +16,6 @@ CITIES = {
     "Leipzig":   {"lat": 51.34, "lon": 12.37},
 }
 
-# Параметры для запроса
 CURRENT_PARAMS = [
     "temperature_2m", "relative_humidity_2m", "apparent_temperature",
     "is_day", "precipitation", "rain", "showers", "snowfall",
@@ -44,7 +43,7 @@ def fetch_weather(city, lat, lon):
         f"daily={daily_str}&"
         f"timezone=Europe/Berlin&forecast_days=7"
     )
-    print(f"[DEBUG] {city}: {url}")
+    print(f"[DEBUG] {city}")
     try:
         response = requests.get(url, timeout=30)
         response.raise_for_status()
@@ -61,39 +60,40 @@ def fetch_weather(city, lat, lon):
         return None
 
 def save_results(results):
-    # 1. Сохраняем полный JSON (текущая погода + прогноз)
+    # 1. Полный JSON
     with open("weather.json", "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
     print("[DONE] weather.json saved")
 
-    # 2. Сохраняем текущую погоду в CSV (дописываем)
+    # 2. Текущая погода — CSV
     current_fields = ["city", "fetched_at"] + CURRENT_PARAMS
     file_exists = os.path.isfile("weather_current.csv") and os.path.getsize("weather_current.csv") > 0
     with open("weather_current.csv", "a", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=current_fields)
+        writer = csv.DictWriter(f, fieldnames=current_fields, extrasaction="ignore")
         if not file_exists:
             writer.writeheader()
         for item in results:
             row = {"city": item["city"], "fetched_at": item["fetched_at"]}
-            row.update(item["current"])
+            for p in CURRENT_PARAMS:
+                row[p] = item["current"].get(p)
             writer.writerow(row)
     print("[DONE] weather_current.csv updated")
 
-    # 3. Сохраняем прогноз в CSV (дописываем, с датой)
+    # 3. Прогноз — CSV
     daily_fields = ["city", "fetched_at", "date"] + DAILY_PARAMS
     file_exists = os.path.isfile("weather_daily.csv") and os.path.getsize("weather_daily.csv") > 0
     with open("weather_daily.csv", "a", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=daily_fields)
+        writer = csv.DictWriter(f, fieldnames=daily_fields, extrasaction="ignore")
         if not file_exists:
             writer.writeheader()
         for item in results:
             daily = item["daily"]
-            if "time" not in daily:
-                continue
-            for i, date in enumerate(daily["time"]):
+            dates = daily.get("time", [])
+            for i, date in enumerate(dates):
                 row = {"city": item["city"], "fetched_at": item["fetched_at"], "date": date}
-                for param in DAILY_PARAMS:
-                    row[param] = daily.get(param, [None] * len(daily["time"]))[i] if param in daily else None
+                for p in DAILY_PARAMS:
+                    vals = daily.get(p)
+                    row[p] = vals[i] if isinstance(vals, list) and i < len(vals) else None
                 writer.writerow(row)
     print("[DONE] weather_daily.csv updated")
 
