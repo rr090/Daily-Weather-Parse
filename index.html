@@ -5,67 +5,71 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Weather</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(135deg,#1e3c72 0%,#2a5298 100%);min-height:100vh;color:#fff;padding:20px}
-  .header{display:flex;justify-content:space-between;align-items:center;gap:12px;max-width:1200px;margin:0 auto 8px;flex-wrap:wrap}
-  h1{font-size:1.6em}
-  .top-actions{display:flex;gap:8px;align-items:center}
-  .menu-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;width:42px;height:42px;border-radius:8px;cursor:pointer;font-size:1.4em;display:flex;align-items:center;justify-content:center}
-  .menu-btn:hover{background:rgba(255,255,255,0.25)}
-  .lang-switch{display:flex;gap:4px}
-  .lang-switch button{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:0.85em;font-weight:600}
-  .lang-switch button.active{background:#fff;color:#1e3c72}
-  .updated{text-align:center;opacity:0.7;margin-bottom:20px;font-size:0.85em}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;max-width:1200px;margin:0 auto}
-  .card{background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);border-radius:16px;padding:18px;border:1px solid rgba(255,255,255,0.2)}
-  .card-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px}
-  .city-name{font-size:1.15em;font-weight:600}
-  .city-country{font-size:0.78em;opacity:0.65}
-  .current{display:flex;align-items:center;gap:14px;margin-bottom:14px}
-  .temp-big{font-size:2.6em;font-weight:300;line-height:1}
-  .weather-icon{font-size:2.6em}
-  .details{display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:0.82em;margin-bottom:14px;opacity:0.9}
-  .details div{display:flex;justify-content:space-between;gap:8px}
-  .details span:first-child{opacity:0.65}
-  .forecast-title{font-size:0.85em;font-weight:600;margin-bottom:6px;opacity:0.75}
-  .forecast{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
-  .day{display:grid;grid-template-columns:64px 26px 1fr auto;gap:6px;padding:5px 8px;background:rgba(0,0,0,0.18);border-radius:6px;font-size:0.8em;align-items:center}
-  .day-date{opacity:0.8}
-  .day-icon{font-size:1.2em;text-align:center}
-  .day-sun{font-size:0.72em;opacity:0.65}
-  .day-temp{font-weight:600;white-space:nowrap}
-  .links{display:flex;flex-wrap:wrap;gap:8px 10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.15);font-size:0.78em}
-  .links a{color:#a9d0ff;text-decoration:none;padding:4px 2px;min-height:32px;display:inline-flex;align-items:center}
-  .links a:hover{color:#fff;text-decoration:underline}
-  .sidebar{position:fixed;top:0;right:-340px;width:340px;max-width:92vw;height:100vh;background:#152952;box-shadow:-4px 0 20px rgba(0,0,0,0.4);transition:right 0.25s ease;z-index:100;display:flex;flex-direction:column;overflow:hidden}
-  .sidebar.open{right:0}
-  .sidebar-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.15)}
-  .sidebar-head h2{font-size:1em}
-  .close-btn{background:none;border:none;color:#fff;font-size:1.5em;cursor:pointer;padding:4px 8px}
-  .search-box{padding:10px 16px}
-  .search-box input{width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:rgba(0,0,0,0.25);color:#fff;font-size:0.9em}
-  .search-box input::placeholder{color:rgba(255,255,255,0.5)}
-  .tree{flex:1;overflow-y:auto;padding:6px 8px 20px}
-  .tree-group{margin-bottom:4px}
-  .tree-group-head{display:flex;justify-content:space-between;align-items:center;padding:10px 10px;cursor:pointer;border-radius:6px;font-weight:600;font-size:0.92em}
-  .tree-group-head:hover{background:rgba(255,255,255,0.08)}
-  .tree-group-head .arrow{transition:transform 0.2s;opacity:0.6;font-size:0.8em}
-  .tree-group.open .tree-group-head .arrow{transform:rotate(90deg)}
-  .tree-group-items{display:none;padding-left:8px}
-  .tree-group.open .tree-group-items{display:block}
-  .tree-item{padding:8px 12px;cursor:pointer;border-radius:6px;font-size:0.86em;display:flex;justify-content:space-between}
-  .tree-item:hover{background:rgba(255,255,255,0.1)}
-  .tree-item.active{background:rgba(255,255,255,0.2);font-weight:600}
-  .tree-item .mini-temp{opacity:0.6;font-size:0.85em}
-  .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:99;display:none}
-  .overlay.show{display:block}
-  .empty{padding:40px;text-align:center;opacity:0.7;grid-column:1/-1}
-  @media(max-width:480px){
-    body{padding:12px}
-    h1{font-size:1.3em}
-    .grid{grid-template-columns:1fr}
-    .card{padding:14px}
-    .temp-big{font-size:2.2em}
+  html, body { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); min-height: 100vh; color: #fff; padding: 20px; }
+  .header { display: flex; justify-content: space-between; align-items: center; gap: 12px; max-width: 1200px; margin: 0 auto 8px; flex-wrap: wrap; }
+  h1 { font-size: 1.6em; }
+  .top-actions { display: flex; gap: 8px; align-items: center; }
+  .menu-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; width: 42px; height: 42px; border-radius: 8px; cursor: pointer; font-size: 1.4em; display: flex; align-items: center; justify-content: center; }
+  .menu-btn:hover { background: rgba(255,255,255,0.25); }
+  .lang-switch { display: flex; gap: 4px; }
+  .lang-switch button { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.85em; font-weight: 600; }
+  .lang-switch button.active { background: #fff; color: #1e3c72; }
+  .updated { text-align: center; opacity: 0.7; margin-bottom: 20px; font-size: 0.85em; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; max-width: 1200px; margin: 0 auto; }
+  .card { background: rgba(255,255,255,0.12); backdrop-filter: blur(10px); border-radius: 16px; padding: 18px; border: 1px solid rgba(255,255,255,0.2); }
+  .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+  .city-name { font-size: 1.15em; font-weight: 600; }
+  .city-country { font-size: 0.78em; opacity: 0.65; }
+  .current { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .temp-big { font-size: 2.6em; font-weight: 300; line-height: 1; }
+  .weather-icon { font-size: 2.6em; }
+  .details { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 0.82em; margin-bottom: 14px; opacity: 0.9; }
+  .details div { display: flex; justify-content: space-between; gap: 8px; }
+  .details span:first-child { opacity: 0.65; }
+  .forecast-title { font-size: 0.85em; font-weight: 600; margin-bottom: 6px; opacity: 0.75; }
+  .forecast { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+  .day { display: grid; grid-template-columns: 64px 26px 1fr auto; gap: 6px; padding: 5px 8px; background: rgba(0,0,0,0.18); border-radius: 6px; font-size: 0.8em; align-items: center; }
+  .day-date { opacity: 0.8; }
+  .day-icon { font-size: 1.2em; text-align: center; }
+  .day-sun { font-size: 0.72em; opacity: 0.65; }
+  .day-temp { font-weight: 600; white-space: nowrap; }
+  .links { display: flex; flex-wrap: wrap; gap: 8px 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.15); font-size: 0.78em; }
+  .links a { color: #a9d0ff; text-decoration: none; padding: 4px 2px; min-height: 32px; display: inline-flex; align-items: center; }
+  .links a:hover { color: #fff; text-decoration: underline; }
+  .sidebar { position: fixed; top: 0; right: -340px; width: 340px; max-width: 92vw; height: 100vh; background: #152952; box-shadow: -4px 0 20px rgba(0,0,0,0.4); transition: right 0.25s ease; z-index: 100; display: flex; flex-direction: column; overflow: hidden; }
+  .sidebar.open { right: 0; }
+  .sidebar-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.15); }
+  .sidebar-head h2 { font-size: 1em; }
+  .close-btn { background: none; border: none; color: #fff; font-size: 1.5em; cursor: pointer; padding: 4px 8px; }
+  .search-box { padding: 10px 16px; }
+  .search-box input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25); background: rgba(0,0,0,0.25); color: #fff; font-size: 0.9em; }
+  .search-box input::placeholder { color: rgba(255,255,255,0.5); }
+  .tree { flex: 1; overflow-y: auto; padding: 6px 8px 20px; }
+  .tree-group { margin-bottom: 4px; }
+  .tree-group-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 10px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 0.92em; }
+  .tree-group-head:hover { background: rgba(255,255,255,0.08); }
+  .tree-group-head .arrow { transition: transform 0.2s; opacity: 0.6; font-size: 0.8em; }
+  .tree-group.open .tree-group-head .arrow { transform: rotate(90deg); }
+  .tree-group-items { display: none; padding-left: 8px; }
+  .tree-group.open .tree-group-items { display: block; }
+  .tree-item { padding: 8px 12px; cursor: pointer; border-radius: 6px; font-size: 0.86em; display: flex; justify-content: space-between; }
+  .tree-item:hover { background: rgba(255,255,255,0.1); }
+  .tree-item.active { background: rgba(255,255,255,0.2); font-weight: 600; }
+  .tree-item .mini-temp { opacity: 0.6; font-size: 0.85em; }
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; display: none; }
+  .overlay.show { display: block; }
+  .empty { padding: 40px; text-align: center; opacity: 0.7; grid-column: 1 / -1; }
+  .scroll-top-btn { position: fixed; bottom: 24px; right: 24px; width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); color: #fff; font-size: 1.4em; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.3s; z-index: 90; }
+  .scroll-top-btn.visible { opacity: 1; pointer-events: auto; }
+  .scroll-top-btn:hover { background: rgba(255,255,255,0.25); }
+  @media(max-width: 480px) {
+    body { padding: 12px; }
+    h1 { font-size: 1.3em; }
+    .grid { grid-template-columns: 1fr; }
+    .card { padding: 14px; }
+    .temp-big { font-size: 2.2em; }
+    .scroll-top-btn { bottom: 16px; right: 16px; width: 40px; height: 40px; font-size: 1.2em; }
   }
 </style>
 </head>
@@ -99,110 +103,33 @@
   <div class="tree" id="tree"></div>
 </aside>
 
+<button class="scroll-top-btn" id="scroll-top-btn" aria-label="Вверх">↑</button>
+
 <script>
 const WEATHER_DATA_URL = "https://raw.githubusercontent.com/rr090/Daily-Weather-Parse/main/weather.json";
 
 const I18N = {
   de: {
-    title: "Wetter",
-    sidebarTitle: "Städte",
-    searchPlaceholder: "Suchen...",
-    updated: "Aktualisiert",
-    loading: "Lädt...",
-    error: "Fehler",
-    noData: "Keine Daten",
-    allCities: "Alle Städte",
-    feelsLike: "Gefühlt",
-    humidity: "Luftfeuchte",
-    cloudCover: "Bewölkung",
-    wind: "Wind",
-    gusts: "Böen",
-    pressure: "Luftdruck",
-    precipitation: "Niederschlag",
-    forecast: "7-Tage-Vorhersage",
-    regions: {
-      germany: "Deutschland",
-      europe: "Europas Hauptstädte",
-      russia: "Russland",
-      caucasus: "Kaukasus",
-      central_asia: "Zentralasien",
-      asia: "Asien",
-      north_america: "Nordamerika",
-      south_america: "Südamerika",
-      oceania: "Ozeanien"
-    },
+    title: "Wetter", sidebarTitle: "Städte", searchPlaceholder: "Suchen...", updated: "Aktualisiert", loading: "Lädt...", error: "Fehler", noData: "Keine Daten", allCities: "Alle Städte", feelsLike: "Gefühlt", humidity: "Luftfeuchte", cloudCover: "Bewölkung", wind: "Wind", gusts: "Böen", pressure: "Luftdruck", precipitation: "Niederschlag", forecast: "7-Tage-Vorhersage",
+    regions: { germany: "Deutschland", europe: "Europas Hauptstädte", russia: "Russland", caucasus: "Kaukasus", central_asia: "Zentralasien", asia: "Asien", north_america: "Nordamerika", south_america: "Südamerika", oceania: "Ozeanien" },
     weather: {0:"Klar",1:"Überwiegend klar",2:"Teilweise bewölkt",3:"Bedeckt",45:"Nebel",48:"Reifnebel",51:"Leichter Niesel",53:"Mäßiger Niesel",55:"Starker Niesel",56:"Leichter Eisniesel",57:"Starker Eisniesel",61:"Leichter Regen",63:"Mäßiger Regen",65:"Starker Regen",66:"Leichter Eisregen",67:"Starker Eisregen",71:"Leichter Schnee",73:"Mäßiger Schnee",75:"Starker Schnee",77:"Schneegriesel",80:"Leichte Schauer",81:"Mäßige Schauer",82:"Starke Schauer",85:"Leichte Schneeschauer",86:"Starke Schneeschauer",95:"Gewitter",96:"Gewitter mit Hagel",99:"Gewitter mit starkem Hagel"},
-    locale: "de-DE",
-    windDirs: ["N","NO","O","SO","S","SW","W","NW"]
+    locale: "de-DE", windDirs: ["N","NO","O","SO","S","SW","W","NW"]
   },
   en: {
-    title: "Weather",
-    sidebarTitle: "Cities",
-    searchPlaceholder: "Search...",
-    updated: "Updated",
-    loading: "Loading...",
-    error: "Error",
-    noData: "No data",
-    allCities: "All cities",
-    feelsLike: "Feels like",
-    humidity: "Humidity",
-    cloudCover: "Cloud cover",
-    wind: "Wind",
-    gusts: "Gusts",
-    pressure: "Pressure",
-    precipitation: "Precipitation",
-    forecast: "7-day forecast",
-    regions: {
-      germany: "Germany",
-      europe: "European Capitals",
-      russia: "Russia",
-      caucasus: "Caucasus",
-      central_asia: "Central Asia",
-      asia: "Asia",
-      north_america: "North America",
-      south_america: "South America",
-      oceania: "Oceania"
-    },
+    title: "Weather", sidebarTitle: "Cities", searchPlaceholder: "Search...", updated: "Updated", loading: "Loading...", error: "Error", noData: "No data", allCities: "All cities", feelsLike: "Feels like", humidity: "Humidity", cloudCover: "Cloud cover", wind: "Wind", gusts: "Gusts", pressure: "Pressure", precipitation: "Precipitation", forecast: "7-day forecast",
+    regions: { germany: "Germany", europe: "European Capitals", russia: "Russia", caucasus: "Caucasus", central_asia: "Central Asia", asia: "Asia", north_america: "North America", south_america: "South America", oceania: "Oceania" },
     weather: {0:"Clear",1:"Mainly clear",2:"Partly cloudy",3:"Overcast",45:"Fog",48:"Depositing rime fog",51:"Light drizzle",53:"Moderate drizzle",55:"Dense drizzle",56:"Light freezing drizzle",57:"Dense freezing drizzle",61:"Slight rain",63:"Moderate rain",65:"Heavy rain",66:"Light freezing rain",67:"Heavy freezing rain",71:"Slight snow",73:"Moderate snow",75:"Heavy snow",77:"Snow grains",80:"Slight rain showers",81:"Moderate rain showers",82:"Violent rain showers",85:"Slight snow showers",86:"Heavy snow showers",95:"Thunderstorm",96:"Thunderstorm with hail",99:"Thunderstorm with heavy hail"},
-    locale: "en-GB",
-    windDirs: ["N","NE","E","SE","S","SW","W","NW"]
+    locale: "en-GB", windDirs: ["N","NE","E","SE","S","SW","W","NW"]
   },
   ru: {
-    title: "Погода",
-    sidebarTitle: "Города",
-    searchPlaceholder: "Поиск...",
-    updated: "Обновлено",
-    loading: "Загрузка...",
-    error: "Ошибка",
-    noData: "Нет данных",
-    allCities: "Все города",
-    feelsLike: "Ощущается",
-    humidity: "Влажность",
-    cloudCover: "Облачность",
-    wind: "Ветер",
-    gusts: "Порывы",
-    pressure: "Давление",
-    precipitation: "Осадки",
-    forecast: "Прогноз на 7 дней",
-    regions: {
-      germany: "Германия",
-      europe: "Столицы Европы",
-      russia: "Россия",
-      caucasus: "Кавказ",
-      central_asia: "Центральная Азия",
-      asia: "Азия",
-      north_america: "Северная Америка",
-      south_america: "Южная Америка",
-      oceania: "Океания"
-    },
+    title: "Погода", sidebarTitle: "Города", searchPlaceholder: "Поиск...", updated: "Обновлено", loading: "Загрузка...", error: "Ошибка", noData: "Нет данных", allCities: "Все города", feelsLike: "Ощущается", humidity: "Влажность", cloudCover: "Облачность", wind: "Ветер", gusts: "Порывы", pressure: "Давление", precipitation: "Осадки", forecast: "Прогноз на 7 дней",
+    regions: { germany: "Германия", europe: "Столицы Европы", russia: "Россия", caucasus: "Кавказ", central_asia: "Центральная Азия", asia: "Азия", north_america: "Северная Америка", south_america: "Южная Америка", oceania: "Океания" },
     weather: {0:"Ясно",1:"Преим. ясно",2:"Перем. облачность",3:"Пасмурно",45:"Туман",48:"Изморозь",51:"Слабая морось",53:"Морось",55:"Сильная морось",56:"Ледяная морось",57:"Сильная лед. морось",61:"Слабый дождь",63:"Дождь",65:"Сильный дождь",66:"Ледяной дождь",67:"Сильный лед. дождь",71:"Слабый снег",73:"Снег",75:"Сильный снег",77:"Снежные зёрна",80:"Слабые ливни",81:"Ливни",82:"Сильные ливни",85:"Слабый снегопад",86:"Сильный снегопад",95:"Гроза",96:"Гроза с градом",99:"Сильная гроза с градом"},
-    locale: "ru-RU",
-    windDirs: ["С","СВ","В","ЮВ","Ю","ЮЗ","З","СЗ"]
+    locale: "ru-RU", windDirs: ["С","СВ","В","ЮВ","Ю","ЮЗ","З","СЗ"]
   }
 };
 
 const WEATHER_ICONS = {0:"☀️",1:"🌤️",2:"⛅",3:"☁️",45:"🌫️",48:"🌫️",51:"🌦️",53:"🌦️",55:"🌧️",56:"🌧️",57:"🌧️",61:"🌦️",63:"🌧️",65:"🌧️",66:"🌧️",67:"🌧️",71:"🌨️",73:"🌨️",75:"❄️",77:"🌨️",80:"🌦️",81:"🌧️",82:"⛈️",85:"🌨️",86:"❄️",95:"⛈️",96:"⛈️",99:"⛈️"};
-
 const REGION_ORDER = ["germany","europe","russia","caucasus","central_asia","asia","north_america","south_america","oceania"];
 
 let state = {
@@ -214,26 +141,19 @@ let state = {
 };
 
 function t() { return I18N[state.lang]; }
-function icon(c){return WEATHER_ICONS[c]||"❓"}
-function wname(c){return t().weather[c]||"—"}
-function fmtTime(iso){if(!iso)return "—";return new Date(iso).toLocaleTimeString(t().locale,{hour:"2-digit",minute:"2-digit"})}
-function fmtDate(iso){const d=new Date(iso+"T12:00:00");return d.toLocaleDateString(t().locale,{weekday:"short",day:"numeric",month:"short"})}
-function windDir(d){if(d==null)return "";return t().windDirs[Math.round(d/45)%8]}
-function slug(s){return s.toLowerCase().replace(/\s+/g,"-")}
+function icon(c){ return WEATHER_ICONS[c] || "❓"; }
+function wname(c){ return t().weather[c] || "—"; }
+function fmtTime(iso){ if(!iso) return "—"; return new Date(iso).toLocaleTimeString(t().locale, {hour:"2-digit", minute:"2-digit"}); }
+function fmtDate(iso){ const d=new Date(iso+"T12:00:00"); return d.toLocaleDateString(t().locale, {weekday:"short", day:"numeric", month:"short"}); }
+function windDir(d){ if(d==null) return ""; return t().windDirs[Math.round(d/45)%8]; }
 
 function buildLinks(city) {
-  const lat = city.lat, lon = city.lon;
-  const nameEn = slug(city.name_en);
-  const countryEn = slug(city.country_en);
-  const cc = city.country_code;
-  const wuPath = city.state ? `${cc}/${nameEn}/${city.state}` : `${cc}/${nameEn}`;
+  const lat = city.lat;
+  const lon = city.lon;
   return {
-    meteoblue: `https://www.meteoblue.com/en/weather/week/${nameEn}_${countryEn}`,
     windy: `https://www.windy.com/${lat}/${lon}?${lat},${lon},8`,
     ventusky: `https://www.ventusky.com/?p=${lat};${lon};6`,
-    yandex: `https://yandex.ru/pogoda/${nameEn}`,
-    gismeteo: `https://www.gismeteo.ru/weather-${nameEn}/`,
-    wunderground: `https://www.wunderground.com/weather/${wuPath}`
+    yandex: `https://yandex.ru/pogoda/?lat=${lat}&lon=${lon}`
   };
 }
 
@@ -263,12 +183,9 @@ function renderCard(cityId, entry) {
   const L = buildLinks(city);
   const linksHtml = `
     <div class="links">
-      <a href="${L.meteoblue}" target="_blank" rel="noopener noreferrer">Meteoblue</a>
+      <a href="${L.yandex}" target="_blank" rel="noopener noreferrer">Яндекс</a>
       <a href="${L.windy}" target="_blank" rel="noopener noreferrer">Windy</a>
       <a href="${L.ventusky}" target="_blank" rel="noopener noreferrer">Ventusky</a>
-      <a href="${L.yandex}" target="_blank" rel="noopener noreferrer">Яндекс</a>
-      <a href="${L.gismeteo}" target="_blank" rel="noopener noreferrer">Gismeteo</a>
-      <a href="${L.wunderground}" target="_blank" rel="noopener noreferrer">WUnderground</a>
     </div>`;
 
   return `<div class="card" id="card-${cityId}">
@@ -353,24 +270,25 @@ function renderTree() {
   }).join("");
 
   const allBtn = `<div class="tree-group"><div class="tree-group-head" data-region="all"><span>${t().allCities}</span></div></div>`;
-
   tree.innerHTML = allBtn + treeHtml;
 
   tree.querySelectorAll(".tree-group-head").forEach(el => {
     el.addEventListener("click", () => {
       const r = el.dataset.region;
-      state.region = r;
-      state.city = null;
-      localStorage.setItem("weather-region", r);
-      localStorage.removeItem("weather-city");
-      if (el.parentElement.classList.contains("tree-group") && r !== "all") {
+      if (r === "all") {
+        state.region = "all";
+        state.city = null;
+        localStorage.setItem("weather-region", "all");
+        localStorage.removeItem("weather-city");
+        renderGrid();
+        renderTree();
+        closeSidebar();
+      } else {
         el.parentElement.classList.toggle("open");
       }
-      renderGrid();
-      renderTree();
-      closeSidebar();
     });
   });
+
   tree.querySelectorAll(".tree-item").forEach(el => {
     el.addEventListener("click", () => {
       state.city = el.dataset.city;
@@ -433,6 +351,18 @@ document.querySelectorAll(".lang-switch button").forEach(btn => {
     localStorage.setItem("weather-lang", state.lang);
     render();
   });
+});
+
+const scrollTopBtn = document.getElementById("scroll-top-btn");
+window.addEventListener("scroll", () => {
+  if (window.scrollY > 400) {
+    scrollTopBtn.classList.add("visible");
+  } else {
+    scrollTopBtn.classList.remove("visible");
+  }
+});
+scrollTopBtn.addEventListener("click", () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
 load();
